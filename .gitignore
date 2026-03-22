@@ -1,0 +1,4 @@
+conso/
+__pycache__/
+.ipynb_checkpoints/
+*.log
