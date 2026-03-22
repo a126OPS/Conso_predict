@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+import os
 import socket
 from pathlib import Path
 
@@ -387,6 +388,10 @@ def build_demo() -> gr.Blocks:
     return demo
 
 
+def running_on_spaces() -> bool:
+    return bool(os.getenv("SPACE_ID") or os.getenv("SYSTEM") == "spaces")
+
+
 def find_available_port(start: int = 7860, stop: int = 7900) -> int:
     for port in range(start, stop + 1):
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
@@ -399,7 +404,7 @@ def find_available_port(start: int = 7860, stop: int = 7900) -> int:
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Lancer l'interface Gradio de conso_predict.")
     parser.add_argument("--share", action="store_true", help="Cree un lien public Gradio.")
-    parser.add_argument("--host", default="127.0.0.1", help="Adresse d'ecoute locale.")
+    parser.add_argument("--host", help="Adresse d'ecoute locale.")
     parser.add_argument("--port", type=int, help="Port local Gradio. Si absent, un port libre est choisi.")
     return parser.parse_args()
 
@@ -407,9 +412,12 @@ def parse_args() -> argparse.Namespace:
 def main() -> None:
     args = parse_args()
     demo = build_demo()
-    port = args.port if args.port is not None else find_available_port()
-    print(f"Interface disponible sur http://{args.host}:{port}")
-    demo.launch(server_name=args.host, server_port=port, share=args.share, debug=True)
+    on_spaces = running_on_spaces()
+    host = args.host or ("0.0.0.0" if on_spaces else "127.0.0.1")
+    port = args.port if args.port is not None else int(os.getenv("PORT", "7860")) if on_spaces else find_available_port()
+    share = args.share and not on_spaces
+    print(f"Interface disponible sur http://{host}:{port}")
+    demo.launch(server_name=host, server_port=port, share=share, debug=not on_spaces)
 
 
 if __name__ == "__main__":

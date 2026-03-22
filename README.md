@@ -1,3 +1,12 @@
+---
+title: Conso Energie Predict
+sdk: gradio
+app_file: app.py
+python_version: "3.12"
+sdk_version: "5.23.1"
+pinned: false
+---
+
 # Conso Predict
 
 Ce projet contient le notebook `conso_electrique_france.ipynb`.
