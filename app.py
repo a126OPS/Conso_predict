@@ -125,6 +125,27 @@ def dept_sort_key(code: str) -> tuple[int, str]:
         return (1, code)
 
 
+def canonical_dept(code: str) -> str:
+    value = str(code).strip().upper()
+    if value in {"2A", "2B"}:
+        return value
+    try:
+        return str(int(value)).zfill(2)
+    except ValueError:
+        return value
+
+
+def dept_name(code: str) -> str:
+    value = str(code).strip().upper()
+    candidates = [value, canonical_dept(value)]
+    if candidates[-1].isdigit():
+        candidates.append(str(int(candidates[-1])))
+    for candidate in candidates:
+        if candidate in NOMS_DEPTS:
+            return NOMS_DEPTS[candidate]
+    return value
+
+
 def load_artifact(model_path: Path = MODEL_PATH) -> dict:
     if not model_path.exists():
         raise FileNotFoundError(
@@ -138,17 +159,15 @@ ARTIFACT = load_artifact()
 PIPELINE = ARTIFACT["pipeline"]
 FEATURES = ARTIFACT["features"]
 DF_MODEL = ARTIFACT["df_model"].copy()
+DF_MODEL["dept_code"] = DF_MODEL["dept"].astype(str).map(canonical_dept)
 MAE = ARTIFACT.get("mae", 307)
 R2 = ARTIFACT.get("r2", 0.42)
 
-DEPTS_DISPO = sorted(DF_MODEL["dept"].astype(str).unique(), key=dept_sort_key)
+DEPTS_DISPO = sorted(DF_MODEL["dept_code"].unique(), key=dept_sort_key)
 CHOIX_DEPTS = []
 for dept in DEPTS_DISPO:
-    try:
-        code_fmt = str(int(dept)).zfill(2)
-    except ValueError:
-        code_fmt = dept
-    nom = NOMS_DEPTS.get(dept, NOMS_DEPTS.get(code_fmt, dept))
+    code_fmt = canonical_dept(dept)
+    nom = dept_name(code_fmt)
     CHOIX_DEPTS.append(f"{code_fmt} - {nom}")
 
 
@@ -161,13 +180,12 @@ def estimer_conso_foyer(
     chauffage_electrique: bool,
     annee: int = 2024,
 ) -> dict:
+    dept_code = canonical_dept(dept)
     ligne = DF_MODEL[
-        (DF_MODEL["dept"].astype(str) == str(dept)) & (DF_MODEL["annee"] == annee)
+        (DF_MODEL["dept_code"] == dept_code) & (DF_MODEL["annee"] == annee)
     ]
     if ligne.empty:
-        ligne = DF_MODEL[DF_MODEL["dept"].astype(str) == str(dept)].sort_values(
-            "annee", ascending=False
-        ).head(1)
+        ligne = DF_MODEL[DF_MODEL["dept_code"] == dept_code].sort_values("annee", ascending=False).head(1)
 
     if not ligne.empty:
         conso_base = float(PIPELINE.predict(ligne[FEATURES])[0])
@@ -244,10 +262,7 @@ def estimer_interface(
     chauffage_elec: str,
 ) -> str:
     dept_raw = dept_str.split(" - ")[0].strip()
-    try:
-        dept = str(int(dept_raw))
-    except ValueError:
-        dept = dept_raw
+    dept = canonical_dept(dept_raw)
 
     resultat = estimer_conso_foyer(
         dept=dept,
@@ -277,7 +292,7 @@ def estimer_interface(
     if not conseils:
         conseils.append("Consommation raisonnable pour ce type de logement.")
 
-    nom_dept = NOMS_DEPTS.get(dept, dept)
+    nom_dept = dept_name(dept)
     conseils_md = "\n".join(f"- {conseil}" for conseil in conseils)
 
     return f"""

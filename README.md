@@ -9,19 +9,15 @@ pinned: false
 
 # Conso Predict
 
-Ce projet contient le notebook `conso_electrique_france.ipynb`.
-Il estime la consommation electrique residentielle en France a partir des donnees ouvertes de l'Agence ORE / ENEDIS, entraine plusieurs modeles ML, explique le resultat avec SHAP, puis propose une interface Gradio.
+Ce projet estime la consommation electrique residentielle en France a partir des donnees ouvertes de l'Agence ORE / ENEDIS et propose une interface Gradio de prediction.
 
-Le notebook a ete cree avec un noyau Python 3.10, et il a ete verifie ici avec Python 3.12.6 le 22/03/2026.
+Le depot contient :
 
-## Prerequis
+- `app.py` : interface Gradio autonome
+- `modele_conso_elec.joblib` : modele exporte
+- `conso_electrique_france.ipynb` : notebook d'analyse et d'entrainement
 
-- Windows
-- Python 3.12 installe
-- Connexion Internet pour installer les dependances
-- Connexion Internet pendant l'execution du notebook pour telecharger les donnees ORE
-
-## Demarrage rapide
+## Lancer localement
 
 Dans PowerShell, depuis le dossier du projet :
 
@@ -30,17 +26,21 @@ py -3.12 -m venv conso
 .\conso\Scripts\Activate.ps1
 python -m pip install --upgrade pip
 pip install -r requirements.txt
+python app.py
+```
+
+L'application choisit automatiquement un port libre en local.
+
+## Lancer le notebook
+
+Si vous voulez reproduire l'entrainement :
+
+```powershell
 python -m ipykernel install --user --name conso --display-name "Python (conso)"
 jupyter lab
 ```
 
-Si le dossier `conso` existe deja, vous pouvez simplement l'activer et ignorer la ligne `py -3.12 -m venv conso`.
-
-Ensuite :
-
-1. Ouvrez `conso_electrique_france.ipynb`
-2. Selectionnez le kernel `Python (conso)`
-3. Executez les cellules dans l'ordre
+Puis ouvrez `conso_electrique_france.ipynb`, selectionnez `Python (conso)` et executez les cellules dans l'ordre.
 
 ## Si l'activation PowerShell est bloquee
 
@@ -56,55 +56,21 @@ Puis relancez :
 .\conso\Scripts\Activate.ps1
 ```
 
-## Ce que produit le notebook
-
-Pendant l'execution, le notebook :
-
-- telecharge les donnees ENEDIS / Agence ORE
-- prepare les variables metier
-- entraine `Ridge`, `Random Forest` et `XGBoost`
-- affiche des graphiques et des explications SHAP
-- sauvegarde `modele_conso_elec.joblib`
-- construit une interface `Gradio`
-
-## Important pour la derniere cellule
-
-La derniere cellule lance :
-
-```python
-demo.launch(share=True, debug=True)
-```
-
-Cela ouvre l'interface Gradio et peut creer un lien public temporaire.
-
-Si vous voulez seulement executer l'analyse et l'entrainement du modele :
-
-- arretez-vous avant la derniere cellule
-- ou remplacez `share=True` par `share=False`
-
 ## Verification rapide
 
 Une fois l'environnement `conso` active :
 
 ```powershell
-python -c "import pandas, numpy, requests, joblib, matplotlib, seaborn, sklearn, xgboost, shap, gradio, jupyterlab, notebook, ipykernel; print('OK')"
+python -c "import gradio, joblib, numpy, pandas, sklearn, xgboost; print('OK')"
 ```
 
 ## Validation realisee ici
 
-Le notebook a ete teste dans l'environnement `conso` avec :
-
-- chargement des donnees ORE
-- preparation du dataset
-- entrainement des modeles
-- calcul SHAP
-- generation du fichier `modele_conso_elec.joblib`
-
-Le lancement automatique de Gradio n'a pas ete execute pendant le test pour eviter de bloquer la session sur le serveur web local.
+L'application Gradio et le chargement du modele ont ete verifies avec Python 3.12.6.
 
 ## Fichiers utiles
 
+- `app.py` : interface Gradio principale
+- `modele_conso_elec.joblib` : artefact du modele
 - `conso_electrique_france.ipynb` : notebook principal
-- `requirements.txt` : dependances Python a installer
-- `conso/` : environnement virtuel local du projet
-- `app.py` : fichier Python actuellement vide
+- `requirements.txt` : dependances Python
