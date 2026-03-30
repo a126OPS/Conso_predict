@@ -72,6 +72,7 @@ print(f"Consommation estimée : {predicted_conso[0]:.0f} kWh/an")
 
 Développé par [a126OPS](https://huggingface.co/a126OPS)  
 🔗 Démo interactive : [conso_energie_predict](https://huggingface.co/spaces/a126OPS/conso_energie_predict)
+🔗 Tester le modèle depuis le portfolio via son interface Gradio : [Portfolio projet_public](https://a126ops.github.io/projet_public/)
 
 ## Licence
 
