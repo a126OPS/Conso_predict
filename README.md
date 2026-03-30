@@ -1,13 +1,3 @@
----
-title: Conso Energie Predict
-emoji: "⚡"
-colorFrom: green
-colorTo: blue
-sdk: docker
-app_port: 7860
-pinned: false
----
-
 # ⚡ Prédiction de la Consommation Électrique d'un Logement
 
 ## Description
