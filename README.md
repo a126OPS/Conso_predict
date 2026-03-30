@@ -1,76 +1,68 @@
 ---
-title: Conso Energie Predict
-sdk: gradio
-app_file: app.py
-python_version: "3.12"
-sdk_version: "5.23.1"
-pinned: false
+language:
+- fr
+license: mit
+tags:
+- tabular-regression
+- energy
+- electricity
+- consommation
+- logement
+- scikit-learn
+- joblib
+metrics:
+- rmse
+- r2
 ---
 
-# Conso Predict
+# ⚡ Prédiction de la Consommation Électrique d'un Logement
 
-Ce projet estime la consommation electrique residentielle en France a partir des donnees ouvertes de l'Agence ORE / ENEDIS et propose une interface Gradio de prediction.
+## Description
 
-Le depot contient :
+Ce modèle prédit la **consommation électrique annuelle d'un logement** (en kWh) à partir de ses caractéristiques. Il peut aider les propriétaires, locataires ou professionnels de l'immobilier à estimer les charges énergétiques d'un bien avant occupation.
 
-- `app.py` : interface Gradio autonome
-- `modele_conso_elec.joblib` : modele exporte
-- `conso_electrique_france.ipynb` : notebook d'analyse et d'entrainement
+## Utilisation
 
-## Lancer localement
+```python
+import joblib
+import numpy as np
+from huggingface_hub import hf_hub_download
 
-Dans PowerShell, depuis le dossier du projet :
+# Chargement du modèle
+model_path = hf_hub_download(repo_id="a126OPS/conso_energie_predict", filename="model.joblib")
+model = joblib.load(model_path)
 
-```powershell
-py -3.12 -m venv conso
-.\conso\Scripts\Activate.ps1
-python -m pip install --upgrade pip
-pip install -r requirements.txt
-python app.py
+# Exemple de prédiction
+# [surface_m2, nb_occupants, type_chauffage, annee_construction, type_logement]
+features = np.array([[75, 2, 1, 1985, 0]])  # 75m², 2 personnes, électrique, 1985, appartement
+predicted_conso = model.predict(features)
+print(f"Consommation estimée : {predicted_conso[0]:.0f} kWh/an")
 ```
 
-L'application choisit automatiquement un port libre en local.
+## Données d'entraînement
 
-## Lancer le notebook
+- **Source :** Données de performance énergétique des logements (DPE) — ADEME / data.gouv.fr
+- **Variables d'entrée :** surface habitable, nombre d'occupants, type de chauffage, année de construction, type de logement (maison / appartement)
+- **Variable cible :** consommation électrique en kWh/an
 
-Si vous voulez reproduire l'entrainement :
+## Performances
 
-```powershell
-python -m ipykernel install --user --name conso --display-name "Python (conso)"
-jupyter lab
-```
+| Métrique | Valeur |
+|----------|--------|
+| RMSE | À compléter |
+| R² | À compléter |
 
-Puis ouvrez `conso_electrique_france.ipynb`, selectionnez `Python (conso)` et executez les cellules dans l'ordre.
+## Limites
 
-## Si l'activation PowerShell est bloquee
+- Les comportements individuels des occupants ont un impact fort non modélisé
+- Le modèle ne tient pas compte des équipements spécifiques (piscine, borne de recharge, etc.)
+- La précision est meilleure sur les logements standards
 
-Executez une seule fois :
+## Auteur
 
-```powershell
-Set-ExecutionPolicy -Scope CurrentUser RemoteSigned
-```
+Développé par [a126OPS](https://huggingface.co/a126OPS)  
+🔗 Démo interactive : [conso_energie_predict](https://huggingface.co/spaces/a126OPS/conso_energie_predict)
 
-Puis relancez :
+## Licence
 
-```powershell
-.\conso\Scripts\Activate.ps1
-```
-
-## Verification rapide
-
-Une fois l'environnement `conso` active :
-
-```powershell
-python -c "import gradio, joblib, numpy, pandas, sklearn, xgboost; print('OK')"
-```
-
-## Validation realisee ici
-
-L'application Gradio et le chargement du modele ont ete verifies avec Python 3.12.6.
-
-## Fichiers utiles
-
-- `app.py` : interface Gradio principale
-- `modele_conso_elec.joblib` : artefact du modele
-- `conso_electrique_france.ipynb` : notebook principal
-- `requirements.txt` : dependances Python
+[MIT](https://opensource.org/licenses/MIT)
